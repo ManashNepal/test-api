@@ -40,16 +40,22 @@ def root():
 async def chat(data : MessageInput):
 
     if not data.session_id:
-        session_id = str(uuid4())
-    else:
-        session_id = data.session_id 
+        data.session_id = str(uuid4())
+         
 
-    if not session_service.get_session(session_id=session_id, app_name="Job Seeking Helper", user_id=data.user_id):
-        session_service.create_session(
+    session = await session_service.get_session(
+        session_id=data.session_id,
+        app_name="Job Seeking Helper",
+        user_id=data.user_id
+    )
+
+    if not session:
+        await session_service.create_session(
             app_name="Job Seeking Helper",
             user_id=data.user_id,
-            session_id=session_id
+            session_id=data.session_id
         )
+
 
     runner = Runner(
         app_name="Job Seeking Helper",
@@ -62,7 +68,7 @@ async def chat(data : MessageInput):
     )
 
     result_text = ""
-    for event in runner.run(user_id=data.user_id, session_id=session_id, new_message=user_message):
+    async for event in runner.run(user_id=data.user_id, session_id=data.session_id, new_message=user_message):
         if event.is_final_response():
             if event.content and event.content.parts:
                 result_text = event.content.parts[0].text
@@ -70,5 +76,5 @@ async def chat(data : MessageInput):
 
     return {
         "response" : result_text,
-        "session_id" : session_id
+        "session_id" : data.session_id
     }
