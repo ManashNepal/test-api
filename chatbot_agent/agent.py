@@ -3,7 +3,7 @@ from google.adk.tools import google_search
 
 root_agent = LlmAgent(
     name="chatbot_agent",
-    model="gemini-2.5-flash",
+    model="gemini-2.0-flash",
     description="Chatbot agent that assists users on a job-search platform by greeting them and " \
     "answering questions related to job search, resume building, interview preparation, company research, " \
     "career paths, and application processes.",
