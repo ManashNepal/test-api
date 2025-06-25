@@ -28,7 +28,7 @@ session_service = InMemorySessionService()
 class MessageInput(BaseModel):
     message : str 
     user_id : str = "guest123"
-    session_id: str = None
+    session_id: str = ""
 
 @app.get("/")
 def root():
@@ -38,7 +38,11 @@ def root():
 
 @app.post("/chat")
 async def chat(data : MessageInput):
-    session_id = data.session_id or str(uuid4())
+
+    if not data.session_id:
+        session_id = str(uuid4())
+    else:
+        session_id = data.session_id 
 
     if not session_service.get_session(session_id=session_id, app_name="Job Seeking Helper", user_id=data.user_id):
         session_service.create_session(
