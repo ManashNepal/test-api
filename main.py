@@ -43,14 +43,14 @@ async def chat(data : MessageInput):
         data.session_id = str(uuid4())
          
 
-    session = await session_service.get_session(
+    session = session_service.get_session(
         session_id=data.session_id,
         app_name="Job Seeking Helper",
         user_id=data.user_id
     )
 
     if not session:
-        await session_service.create_session(
+        session_service.create_session(
             app_name="Job Seeking Helper",
             user_id=data.user_id,
             session_id=data.session_id
@@ -68,7 +68,7 @@ async def chat(data : MessageInput):
     )
 
     result_text = ""
-    async for event in runner.run(user_id=data.user_id, session_id=data.session_id, new_message=user_message):
+    for event in runner.run(user_id=data.user_id, session_id=data.session_id, new_message=user_message):
         if event.is_final_response():
             if event.content and event.content.parts:
                 result_text = event.content.parts[0].text
