@@ -37,23 +37,20 @@ def root():
     }
 
 @app.post("/chat")
-async def chat(data : MessageInput):
+async def chat(data: MessageInput):
     if not data.session_id:
         data.session_id = str(uuid4())
     
-    # Synchronous session handling
-    session = session_service.get_session(
-        session_id=data.session_id,
-        app_name="Job Seeking Helper",
-        user_id=data.user_id
-    )
-
-    if not session:
-        session_service.create_session(
+    # Create session directly without prior check
+    try:
+        await session_service.create_session(
             app_name="Job Seeking Helper",
             user_id=data.user_id,
             session_id=data.session_id
         )
+    except Exception:
+        # Session may already exist (safe to ignore)
+        pass
 
     runner = Runner(
         app_name="Job Seeking Helper",
@@ -66,7 +63,6 @@ async def chat(data : MessageInput):
     )
 
     result_text = ""
-    # Proper async handling for runner
     async for event in runner.run_async(
         user_id=data.user_id,
         session_id=data.session_id,
