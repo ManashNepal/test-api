@@ -38,11 +38,10 @@ def root():
 
 @app.post("/chat")
 async def chat(data : MessageInput):
-
     if not data.session_id:
         data.session_id = str(uuid4())
-         
-
+    
+    # Synchronous session handling
     session = session_service.get_session(
         session_id=data.session_id,
         app_name="Job Seeking Helper",
@@ -56,7 +55,6 @@ async def chat(data : MessageInput):
             session_id=data.session_id
         )
 
-
     runner = Runner(
         app_name="Job Seeking Helper",
         agent=root_agent,
@@ -68,13 +66,13 @@ async def chat(data : MessageInput):
     )
 
     result_text = ""
-    for event in runner.run(user_id=data.user_id, session_id=data.session_id, new_message=user_message):
-        if event.is_final_response():
-            if event.content and event.content.parts:
-                result_text = event.content.parts[0].text
+    # Proper async handling for runner
+    async for event in runner.run_async(
+        user_id=data.user_id,
+        session_id=data.session_id,
+        new_message=user_message
+    ):
+        if event.is_final_response() and event.content.parts:
+            result_text = event.content.parts[0].text
 
-
-    return {
-        "response" : result_text,
-        "session_id" : data.session_id
-    }
+    return {"response": result_text, "session_id": data.session_id}
