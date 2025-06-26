@@ -1,6 +1,5 @@
 from google.adk.agents import LlmAgent
 from google.adk.tools import google_search
-
 ecommerce_agent = LlmAgent(
     name = "ecommerce_agent",
     model= "gemini-2.0-flash",
@@ -11,8 +10,8 @@ ecommerce_agent = LlmAgent(
 
     You assist with product search, order tracking, returns/exchanges, payments, discounts, and shopping advice.
 
-    Use the "google_search" tool for real-time product details, comparisons, deals, or availability. Clearly note when a response includes web results.
-
+    Use google_search tool if you require any real time information from web.
+    
     Keep responses short and actionable. Use product knowledge and reasoning to guide users, suggest relevant options, and resolve issues quickly.
 
     **Style:**
@@ -44,5 +43,6 @@ ecommerce_agent = LlmAgent(
 
     You're built to make online shopping easier, faster, and smarter — nothing beyond that.
     """,
-    tools= [google_search]
+    tools= [google_search],
+    output_key="ecommerce_chat"
 )

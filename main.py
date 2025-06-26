@@ -2,6 +2,7 @@ from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
+from google.adk.memory import InMemoryMemoryService
 from google.genai import types
 from dotenv import load_dotenv
 from uuid import uuid4
@@ -9,6 +10,8 @@ from chatbot_agent.job_agent import job_agent
 from chatbot_agent.ecommerce_agent import ecommerce_agent
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
+
+
 
 load_dotenv()
 
@@ -30,12 +33,13 @@ API_KEYS = {
 }
 
 session_service = InMemorySessionService()
+memory_service = InMemoryMemoryService()
 
 #Input Format
 class MessageInput(BaseModel):
     message : str 
     user_id : str = "guest123"
-    session_id: str = ""
+    session_id: str = str(uuid4())
 
 @app.get("/")
 def root():
@@ -44,10 +48,7 @@ def root():
     }
 
 @app.post("/chat")
-async def chat(data: MessageInput, x_api_key : Optional[str] = Header(None)):
-    if not data.session_id:
-        data.session_id = str(uuid4())
-    
+async def chat(data: MessageInput, x_api_key : Optional[str] = Header(None)):    
     if x_api_key not in API_KEYS:
         raise HTTPException(status_code=401, detail="Not available APIs")
     
@@ -59,21 +60,24 @@ async def chat(data: MessageInput, x_api_key : Optional[str] = Header(None)):
         agent = ecommerce_agent
 
 
-    # Create session directly without prior check
-    try:
-        await session_service.create_session(
+    existing_session = session_service.get_session(
+        session_id=data.session_id,
+        app_name=app_name,
+        user_id=data.user_id
+        )
+
+    if not existing_session:
+        session_service.create_session(
             app_name=app_name,
             user_id=data.user_id,
             session_id=data.session_id
         )
-    except Exception:
-        # Session may already exist (safe to ignore)
-        pass
 
     runner = Runner(
         app_name=app_name,
         agent=agent,
-        session_service=session_service
+        session_service=session_service,
+        memory_service=memory_service
     )
 
     user_message = types.Content(
@@ -89,4 +93,4 @@ async def chat(data: MessageInput, x_api_key : Optional[str] = Header(None)):
         if event.is_final_response() and event.content.parts:
             result_text = event.content.parts[0].text
 
-    return {"response": result_text, "session_id": data.session_id}
+    return {"response": result_text, "session" : data.session_id} 

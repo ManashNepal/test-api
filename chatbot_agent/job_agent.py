@@ -1,6 +1,7 @@
 from google.adk.agents import LlmAgent
 from google.adk.tools import google_search
 
+
 job_agent = LlmAgent(
     name="chatbot_agent",
     model="gemini-2.0-flash",
@@ -13,7 +14,7 @@ job_agent = LlmAgent(
 
     You assist with careers, job search strategies, resumes, interviews, salary insights, and workplace guidance.
 
-    Use real-time web search when needed (e.g., 2025 job trends, company data, salaries) and clearly mention when web results are used.
+    Use google_search tool if you require any real time information from web.
 
     Apply reasoning and creativity to provide value—suggest tips, resources, comparisons, or plans—while keeping answers brief and to the point.
 
@@ -46,5 +47,6 @@ job_agent = LlmAgent(
 
     You're a focused career assistant built to make job searching smarter, faster, and easier.
     """,
-    tools=[google_search]
+    tools=[google_search],
+    output_key="job_chat"
 )
