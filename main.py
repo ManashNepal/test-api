@@ -67,7 +67,7 @@ async def chat(data: MessageInput, x_api_key : Optional[str] = Header(None)):
         )
 
     if not existing_session:
-        session_service.create_session(
+        await session_service.create_session(
             app_name=app_name,
             user_id=data.user_id,
             session_id=data.session_id
