@@ -1,12 +1,14 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
 from dotenv import load_dotenv
 from uuid import uuid4
-from chatbot_agent.agent import root_agent
+from chatbot_agent.job_agent import job_agent
+from chatbot_agent.ecommerce_agent import ecommerce_agent
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
 
 load_dotenv()
 
@@ -22,6 +24,11 @@ app.add_middleware(
     allow_headers = ["*"]
 )
 
+API_KEYS = {
+    "api_key_123" : "job_agent",
+    "api_key_456" : "ecommerce_agent"
+}
+
 session_service = InMemorySessionService()
 
 #Input Format
@@ -33,18 +40,29 @@ class MessageInput(BaseModel):
 @app.get("/")
 def root():
     return {
-        "message" : "Job Assistant API is running"
+        "message" : "Multi agents API running"
     }
 
 @app.post("/chat")
-async def chat(data: MessageInput):
+async def chat(data: MessageInput, x_api_key : Optional[str] = Header(None)):
     if not data.session_id:
         data.session_id = str(uuid4())
     
+    if x_api_key not in API_KEYS:
+        raise HTTPException(status_code=401, detail="Not available APIs")
+    
+    if x_api_key == "api_key_123":
+        app_name = "Job Seeking Helper"
+        agent = job_agent
+    elif x_api_key == "api_key_456":
+        app_name = "Ecommerce Website Assistant"
+        agent = ecommerce_agent
+
+
     # Create session directly without prior check
     try:
         await session_service.create_session(
-            app_name="Job Seeking Helper",
+            app_name=app_name,
             user_id=data.user_id,
             session_id=data.session_id
         )
@@ -53,8 +71,8 @@ async def chat(data: MessageInput):
         pass
 
     runner = Runner(
-        app_name="Job Seeking Helper",
-        agent=root_agent,
+        app_name=app_name,
+        agent=agent,
         session_service=session_service
     )
 

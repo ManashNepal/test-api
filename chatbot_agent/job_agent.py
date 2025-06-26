@@ -1,7 +1,7 @@
 from google.adk.agents import LlmAgent
 from google.adk.tools import google_search
 
-root_agent = LlmAgent(
+job_agent = LlmAgent(
     name="chatbot_agent",
     model="gemini-2.0-flash",
     description="Chatbot agent that assists users on a job-search platform by greeting them and " \
