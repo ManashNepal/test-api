@@ -60,7 +60,7 @@ async def chat(data: MessageInput, x_api_key : Optional[str] = Header(None)):
         agent = ecommerce_agent
 
 
-    existing_session = session_service.get_session(
+    existing_session = await session_service.get_session(
         session_id=data.session_id,
         app_name=app_name,
         user_id=data.user_id
